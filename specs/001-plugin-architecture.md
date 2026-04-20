@@ -29,6 +29,7 @@ type SubPlugin interface {
     Name() string
     HandlePullRequestEvent(*logrus.Entry, github.PullRequestEvent)
     HandleIssueCommentEvent(*logrus.Entry, github.IssueCommentEvent)
+    HandleReviewEvent(*logrus.Entry, github.ReviewEvent)
 }
 ```
 

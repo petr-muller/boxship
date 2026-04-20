@@ -13,15 +13,17 @@ import (
 
 type fakePlugin struct{}
 
-func (f *fakePlugin) Name() string                                                        { return "fake" }
-func (f *fakePlugin) HandlePullRequestEvent(_ *logrus.Entry, _ github.PullRequestEvent)    {}
-func (f *fakePlugin) HandleIssueCommentEvent(_ *logrus.Entry, _ github.IssueCommentEvent)  {}
+func (f *fakePlugin) Name() string                                                       { return "fake" }
+func (f *fakePlugin) HandlePullRequestEvent(_ *logrus.Entry, _ github.PullRequestEvent)   {}
+func (f *fakePlugin) HandleIssueCommentEvent(_ *logrus.Entry, _ github.IssueCommentEvent) {}
+func (f *fakePlugin) HandleReviewEvent(_ *logrus.Entry, _ github.ReviewEvent)             {}
 
 type recordingPlugin struct {
-	name              string
-	mu                sync.Mutex
-	prEvents          []github.PullRequestEvent
+	name               string
+	mu                 sync.Mutex
+	prEvents           []github.PullRequestEvent
 	issueCommentEvents []github.IssueCommentEvent
+	reviewEvents       []github.ReviewEvent
 }
 
 func (r *recordingPlugin) Name() string { return r.name }
@@ -36,6 +38,12 @@ func (r *recordingPlugin) HandleIssueCommentEvent(_ *logrus.Entry, event github.
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.issueCommentEvents = append(r.issueCommentEvents, event)
+}
+
+func (r *recordingPlugin) HandleReviewEvent(_ *logrus.Entry, event github.ReviewEvent) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.reviewEvents = append(r.reviewEvents, event)
 }
 
 func TestDispatcherRegister(t *testing.T) {

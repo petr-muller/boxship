@@ -36,3 +36,11 @@ func TestHandleIssueCommentEvent(t *testing.T) {
 		t.Errorf("expected no comments, got %d", len(ghc.IssueCommentsAdded))
 	}
 }
+
+func TestHandleReviewEvent(t *testing.T) {
+	ghc := fakegithub.NewFakeClient()
+	plugin := New(ghc)
+
+	event := testhelpers.NewReviewEvent("org", "repo", 1, "submitted", "reviewer", "APPROVED")
+	plugin.HandleReviewEvent(logrus.NewEntry(logrus.StandardLogger()), event)
+}

@@ -22,6 +22,23 @@ func NewPullRequestEvent(org, repo string, number int, action github.PullRequest
 	}
 }
 
+func NewReviewEvent(org, repo string, number int, action github.ReviewEventAction, reviewer string, state github.ReviewState) github.ReviewEvent {
+	return github.ReviewEvent{
+		Action: action,
+		Review: github.Review{
+			User:  github.User{Login: reviewer},
+			State: state,
+		},
+		PullRequest: github.PullRequest{
+			Number: number,
+		},
+		Repo: github.Repo{
+			Owner: github.User{Login: org},
+			Name:  repo,
+		},
+	}
+}
+
 func NewIssueCommentEvent(org, repo string, number int, body string) github.IssueCommentEvent {
 	return github.IssueCommentEvent{
 		Action: github.IssueCommentActionCreated,

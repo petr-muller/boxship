@@ -15,6 +15,7 @@ import (
 
 	"github.com/petr-muller/boxship/pkg/dispatch"
 	"github.com/petr-muller/boxship/pkg/subplugins/example"
+	"github.com/petr-muller/boxship/pkg/subplugins/readyforhumans"
 )
 
 type options struct {
@@ -84,9 +85,11 @@ func main() {
 
 	dispatcher := dispatch.NewDispatcher(logger)
 	dispatcher.Register(example.New(ghc))
+	dispatcher.Register(readyforhumans.New(ghc))
 
 	eventServer.RegisterHandlePullRequestEvent(dispatcher.HandlePullRequestEvent)
 	eventServer.RegisterHandleIssueCommentEvent(dispatcher.HandleIssueCommentEvent)
+	eventServer.RegisterReviewEventHandler(dispatcher.HandleReviewEvent)
 
 	interrupts.OnInterrupt(func() {
 		eventServer.GracefulShutdown()

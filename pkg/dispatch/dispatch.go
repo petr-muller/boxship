@@ -10,6 +10,7 @@ type SubPlugin interface {
 	Name() string
 	HandlePullRequestEvent(*logrus.Entry, github.PullRequestEvent)
 	HandleIssueCommentEvent(*logrus.Entry, github.IssueCommentEvent)
+	HandleReviewEvent(*logrus.Entry, github.ReviewEvent)
 }
 
 type Dispatcher struct {
@@ -39,5 +40,12 @@ func (d *Dispatcher) HandleIssueCommentEvent(l *logrus.Entry, event github.Issue
 	for _, p := range d.plugins {
 		plugin := p
 		go plugin.HandleIssueCommentEvent(l.WithField("plugin", plugin.Name()), event)
+	}
+}
+
+func (d *Dispatcher) HandleReviewEvent(l *logrus.Entry, event github.ReviewEvent) {
+	for _, p := range d.plugins {
+		plugin := p
+		go plugin.HandleReviewEvent(l.WithField("plugin", plugin.Name()), event)
 	}
 }

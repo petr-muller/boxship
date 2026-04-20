@@ -14,6 +14,7 @@ import (
 
 	"github.com/petr-muller/boxship/pkg/dispatch"
 	"github.com/petr-muller/boxship/pkg/subplugins/example"
+	"github.com/petr-muller/boxship/pkg/subplugins/readyforhumans"
 )
 
 const devHMAC = "devhmac"
@@ -50,9 +51,11 @@ func main() {
 
 	dispatcher := dispatch.NewDispatcher(logger)
 	dispatcher.Register(example.New(ghc))
+	dispatcher.Register(readyforhumans.New(ghc))
 
 	eventServer.RegisterHandlePullRequestEvent(dispatcher.HandlePullRequestEvent)
 	eventServer.RegisterHandleIssueCommentEvent(dispatcher.HandleIssueCommentEvent)
+	eventServer.RegisterReviewEventHandler(dispatcher.HandleReviewEvent)
 
 	stateMux := http.NewServeMux()
 	stateMux.HandleFunc("GET /state", func(w http.ResponseWriter, r *http.Request) {

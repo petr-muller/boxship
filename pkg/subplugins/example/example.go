@@ -38,3 +38,7 @@ func (p *Plugin) HandlePullRequestEvent(l *logrus.Entry, event github.PullReques
 func (p *Plugin) HandleIssueCommentEvent(l *logrus.Entry, event github.IssueCommentEvent) {
 	l.Info("Received issue comment event")
 }
+
+func (p *Plugin) HandleReviewEvent(l *logrus.Entry, event github.ReviewEvent) {
+	l.Info("Received review event")
+}

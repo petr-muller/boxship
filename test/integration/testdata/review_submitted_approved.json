@@ -1,0 +1,51 @@
+{
+  "action": "submitted",
+  "review": {
+    "id": 12345,
+    "node_id": "PRR_test12345",
+    "user": {
+      "login": "coderabbitai[bot]",
+      "id": 136622811,
+      "type": "Bot"
+    },
+    "body": "All review comments have been resolved.",
+    "state": "APPROVED",
+    "html_url": "https://github.com/test-org/test-repo/pull/1#pullrequestreview-12345",
+    "submitted_at": "2026-04-20T10:00:00Z"
+  },
+  "pull_request": {
+    "number": 1,
+    "title": "Test PR for ready-for-humans",
+    "user": {
+      "login": "test-author",
+      "id": 1
+    },
+    "labels": [],
+    "base": {
+      "ref": "main",
+      "repo": {
+        "name": "test-repo",
+        "full_name": "test-org/test-repo",
+        "owner": {
+          "login": "test-org"
+        }
+      }
+    },
+    "head": {
+      "ref": "feature-branch",
+      "sha": "abc123def456"
+    }
+  },
+  "repository": {
+    "name": "test-repo",
+    "full_name": "test-org/test-repo",
+    "owner": {
+      "login": "test-org"
+    }
+  },
+  "sender": {
+    "login": "coderabbitai[bot]",
+    "id": 136622811,
+    "type": "Bot"
+  }
+}
