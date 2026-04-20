@@ -26,6 +26,9 @@ go.work.sum
 
 # Build output
 _output/
+boxship
+devserver
+devwebhook
 
 # env file
 .env

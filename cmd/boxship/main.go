@@ -75,10 +75,15 @@ func main() {
 		return data
 	}
 
+	ghc, err := o.github.GitHubClient(o.dryRun)
+	if err != nil {
+		logger.WithError(err).Fatal("Failed to create GitHub client")
+	}
+
 	eventServer := githubeventserver.New(o.eventServerOptions, hmacTokenGenerator, logger)
 
 	dispatcher := dispatch.NewDispatcher(logger)
-	dispatcher.Register(example.New())
+	dispatcher.Register(example.New(ghc))
 
 	eventServer.RegisterHandlePullRequestEvent(dispatcher.HandlePullRequestEvent)
 	eventServer.RegisterHandleIssueCommentEvent(dispatcher.HandleIssueCommentEvent)

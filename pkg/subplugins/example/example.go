@@ -3,14 +3,22 @@
 package example
 
 import (
+	"fmt"
+
 	"github.com/sirupsen/logrus"
 	"sigs.k8s.io/prow/pkg/github"
 )
 
-type Plugin struct{}
+type githubClient interface {
+	CreateComment(owner, repo string, number int, comment string) error
+}
 
-func New() *Plugin {
-	return &Plugin{}
+type Plugin struct {
+	ghc githubClient
+}
+
+func New(ghc githubClient) *Plugin {
+	return &Plugin{ghc: ghc}
 }
 
 func (p *Plugin) Name() string {
@@ -19,6 +27,12 @@ func (p *Plugin) Name() string {
 
 func (p *Plugin) HandlePullRequestEvent(l *logrus.Entry, event github.PullRequestEvent) {
 	l.Info("Received pull request event")
+	org := event.Repo.Owner.Login
+	repo := event.Repo.Name
+	number := event.Number
+	if err := p.ghc.CreateComment(org, repo, number, fmt.Sprintf("example plugin noticed PR #%d", number)); err != nil {
+		l.WithError(err).Error("Failed to create comment")
+	}
 }
 
 func (p *Plugin) HandleIssueCommentEvent(l *logrus.Entry, event github.IssueCommentEvent) {

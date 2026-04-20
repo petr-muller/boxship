@@ -2,13 +2,16 @@ BINARY := boxship
 OUTPUT_DIR := _output
 IMAGE_REPO ?= quay.io/petr-muller/boxship
 
-.PHONY: build test vet verify image clean
+.PHONY: build test integration-test vet verify image clean dev-server dev-webhook dev-state dev-reset dev-watch
 
 build:
 	go build -o $(OUTPUT_DIR)/$(BINARY) ./cmd/boxship/
 
 test:
 	go test ./...
+
+integration-test:
+	go test -tags=integration ./test/integration/...
 
 vet:
 	go vet ./...
@@ -20,3 +23,19 @@ image: build
 
 clean:
 	rm -rf $(OUTPUT_DIR)/
+
+dev-server:
+	go run ./cmd/devserver/ --port=8888 --state-port=8889
+
+dev-webhook:
+	go run ./cmd/devwebhook/ --address=http://localhost:8888/hook \
+		--event=$(EVENT) --payload=$(PAYLOAD)
+
+dev-state:
+	@curl -s http://localhost:8889/state | jq .
+
+dev-reset:
+	@curl -s -XPOST http://localhost:8889/reset
+
+dev-watch:
+	watchexec -r -e go -- go run ./cmd/devserver/ --port=8888 --state-port=8889

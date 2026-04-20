@@ -1,0 +1,31 @@
+{
+  "action": "created",
+  "issue": {
+    "number": 1,
+    "state": "open",
+    "title": "Test issue",
+    "user": {
+      "login": "test-author"
+    },
+    "pull_request": {
+      "html_url": "https://github.com/test-org/test-repo/pull/1"
+    }
+  },
+  "comment": {
+    "id": 100,
+    "body": "/example",
+    "user": {
+      "login": "test-commenter"
+    }
+  },
+  "repository": {
+    "owner": {
+      "login": "test-org"
+    },
+    "name": "test-repo",
+    "full_name": "test-org/test-repo"
+  },
+  "sender": {
+    "login": "test-commenter"
+  }
+}
