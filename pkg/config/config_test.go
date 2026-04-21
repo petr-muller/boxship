@@ -321,6 +321,63 @@ func TestIsEnabled(t *testing.T) {
 			repo:       "repo",
 			expected:   true,
 		},
+		{
+			name: "listed only at org level",
+			cfg: &Config{
+				Orgs: map[string]OrgConfig{"org": {Plugins: []PluginConfig{{Name: "p"}}}},
+			},
+			pluginName: "p",
+			org:        "org",
+			repo:       "repo",
+			expected:   true,
+		},
+		{
+			name: "listed only at repo level",
+			cfg: &Config{
+				Orgs: map[string]OrgConfig{"org": {
+					Repos: map[string]RepoConfig{"repo": {Plugins: []PluginConfig{{Name: "p"}}}},
+				}},
+			},
+			pluginName: "p",
+			org:        "org",
+			repo:       "repo",
+			expected:   true,
+		},
+		{
+			name: "listed only at repo level, different repo not affected",
+			cfg: &Config{
+				Orgs: map[string]OrgConfig{"org": {
+					Repos: map[string]RepoConfig{"repo": {Plugins: []PluginConfig{{Name: "p"}}}},
+				}},
+			},
+			pluginName: "p",
+			org:        "org",
+			repo:       "other-repo",
+			expected:   false,
+		},
+		{
+			name: "listed only at org level, different org not affected",
+			cfg: &Config{
+				Orgs: map[string]OrgConfig{"org": {Plugins: []PluginConfig{{Name: "p"}}}},
+			},
+			pluginName: "p",
+			org:        "other-org",
+			repo:       "repo",
+			expected:   false,
+		},
+		{
+			name: "listed at org level, disabled at repo level",
+			cfg: &Config{
+				Orgs: map[string]OrgConfig{"org": {
+					Plugins: []PluginConfig{{Name: "p"}},
+					Repos:   map[string]RepoConfig{"repo": {Plugins: []PluginConfig{{Name: "p", Disabled: boolPtr(true)}}}},
+				}},
+			},
+			pluginName: "p",
+			org:        "org",
+			repo:       "repo",
+			expected:   false,
+		},
 	}
 
 	for _, tc := range testCases {

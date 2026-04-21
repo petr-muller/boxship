@@ -36,7 +36,11 @@ orgs:
 
 ### Enable/Disable Semantics
 
-- Listing a plugin means it is enabled
+- Listing a plugin at any level (top-level, org, or repo) means it is enabled for that scope
+- A plugin listed at top-level is enabled for all repos in all orgs
+- A plugin listed only at org level is enabled for all repos in that org
+- A plugin listed only at repo level is enabled for that specific repo
+- A top-level listing is NOT required; org or repo level entries are sufficient to enable a plugin
 - Use `disabled: true` to explicitly disable a plugin at a given level
 - If a plugin is not listed at any level, it is disabled
 - Lower levels override upper: repo > org > top-level
