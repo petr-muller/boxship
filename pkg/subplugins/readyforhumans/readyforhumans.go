@@ -61,7 +61,7 @@ func (p *Plugin) HandleReviewEvent(_ context.Context, l *logrus.Entry, re github
 		return dispatch.Irrelevant("action is not submitted")
 	}
 
-	if re.Review.State != github.ReviewStateApproved {
+	if !strings.EqualFold(string(re.Review.State), string(github.ReviewStateApproved)) {
 		return dispatch.Irrelevant("review state is not approved")
 	}
 
