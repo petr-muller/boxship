@@ -8,6 +8,8 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"sigs.k8s.io/prow/pkg/github"
+
+	"github.com/petr-muller/boxship/pkg/dispatch"
 )
 
 type githubClient interface {
@@ -26,20 +28,20 @@ func (p *Plugin) Name() string {
 	return "example"
 }
 
-func (p *Plugin) HandlePullRequestEvent(_ context.Context, l *logrus.Entry, event github.PullRequestEvent) {
-	l.Info("Received pull request event")
+func (p *Plugin) HandlePullRequestEvent(_ context.Context, l *logrus.Entry, event github.PullRequestEvent) dispatch.HandlerResult {
 	org := event.Repo.Owner.Login
 	repo := event.Repo.Name
 	number := event.Number
 	if err := p.ghc.CreateComment(org, repo, number, fmt.Sprintf("example plugin noticed PR #%d", number)); err != nil {
 		l.WithError(err).Error("Failed to create comment")
 	}
+	return dispatch.Handled("")
 }
 
-func (p *Plugin) HandleIssueCommentEvent(_ context.Context, l *logrus.Entry, event github.IssueCommentEvent) {
-	l.Info("Received issue comment event")
+func (p *Plugin) HandleIssueCommentEvent(_ context.Context, _ *logrus.Entry, _ github.IssueCommentEvent) dispatch.HandlerResult {
+	return dispatch.Handled("")
 }
 
-func (p *Plugin) HandleReviewEvent(_ context.Context, l *logrus.Entry, event github.ReviewEvent) {
-	l.Info("Received review event")
+func (p *Plugin) HandleReviewEvent(_ context.Context, _ *logrus.Entry, _ github.ReviewEvent) dispatch.HandlerResult {
+	return dispatch.Handled("")
 }

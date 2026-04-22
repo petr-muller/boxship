@@ -15,12 +15,16 @@ import (
 
 type fakePlugin struct{}
 
-func (f *fakePlugin) Name() string                                                                       { return "fake" }
-func (f *fakePlugin) HandlePullRequestEvent(_ context.Context, _ *logrus.Entry, _ github.PullRequestEvent) {
+func (f *fakePlugin) Name() string { return "fake" }
+func (f *fakePlugin) HandlePullRequestEvent(_ context.Context, _ *logrus.Entry, _ github.PullRequestEvent) HandlerResult {
+	return HandlerResult{}
 }
-func (f *fakePlugin) HandleIssueCommentEvent(_ context.Context, _ *logrus.Entry, _ github.IssueCommentEvent) {
+func (f *fakePlugin) HandleIssueCommentEvent(_ context.Context, _ *logrus.Entry, _ github.IssueCommentEvent) HandlerResult {
+	return HandlerResult{}
 }
-func (f *fakePlugin) HandleReviewEvent(_ context.Context, _ *logrus.Entry, _ github.ReviewEvent) {}
+func (f *fakePlugin) HandleReviewEvent(_ context.Context, _ *logrus.Entry, _ github.ReviewEvent) HandlerResult {
+	return HandlerResult{}
+}
 
 type recordingPlugin struct {
 	name               string
@@ -32,22 +36,25 @@ type recordingPlugin struct {
 
 func (r *recordingPlugin) Name() string { return r.name }
 
-func (r *recordingPlugin) HandlePullRequestEvent(_ context.Context, _ *logrus.Entry, event github.PullRequestEvent) {
+func (r *recordingPlugin) HandlePullRequestEvent(_ context.Context, _ *logrus.Entry, event github.PullRequestEvent) HandlerResult {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.prEvents = append(r.prEvents, event)
+	return Handled("")
 }
 
-func (r *recordingPlugin) HandleIssueCommentEvent(_ context.Context, _ *logrus.Entry, event github.IssueCommentEvent) {
+func (r *recordingPlugin) HandleIssueCommentEvent(_ context.Context, _ *logrus.Entry, event github.IssueCommentEvent) HandlerResult {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.issueCommentEvents = append(r.issueCommentEvents, event)
+	return Handled("")
 }
 
-func (r *recordingPlugin) HandleReviewEvent(_ context.Context, _ *logrus.Entry, event github.ReviewEvent) {
+func (r *recordingPlugin) HandleReviewEvent(_ context.Context, _ *logrus.Entry, event github.ReviewEvent) HandlerResult {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.reviewEvents = append(r.reviewEvents, event)
+	return Handled("")
 }
 
 func enabledResolver(pluginNames ...string) *config.Resolver {
@@ -254,13 +261,16 @@ type blockingPlugin struct {
 }
 
 func (b *blockingPlugin) Name() string { return b.name }
-func (b *blockingPlugin) HandlePullRequestEvent(_ context.Context, _ *logrus.Entry, _ github.PullRequestEvent) {
+func (b *blockingPlugin) HandlePullRequestEvent(_ context.Context, _ *logrus.Entry, _ github.PullRequestEvent) HandlerResult {
 	close(b.started)
 	<-b.unblock
+	return HandlerResult{}
 }
-func (b *blockingPlugin) HandleIssueCommentEvent(_ context.Context, _ *logrus.Entry, _ github.IssueCommentEvent) {
+func (b *blockingPlugin) HandleIssueCommentEvent(_ context.Context, _ *logrus.Entry, _ github.IssueCommentEvent) HandlerResult {
+	return HandlerResult{}
 }
-func (b *blockingPlugin) HandleReviewEvent(_ context.Context, _ *logrus.Entry, _ github.ReviewEvent) {
+func (b *blockingPlugin) HandleReviewEvent(_ context.Context, _ *logrus.Entry, _ github.ReviewEvent) HandlerResult {
+	return HandlerResult{}
 }
 
 type contextAwarePlugin struct {
@@ -269,13 +279,16 @@ type contextAwarePlugin struct {
 }
 
 func (c *contextAwarePlugin) Name() string { return c.name }
-func (c *contextAwarePlugin) HandlePullRequestEvent(ctx context.Context, _ *logrus.Entry, _ github.PullRequestEvent) {
+func (c *contextAwarePlugin) HandlePullRequestEvent(ctx context.Context, _ *logrus.Entry, _ github.PullRequestEvent) HandlerResult {
 	<-ctx.Done()
 	close(c.ctxCancelled)
+	return HandlerResult{}
 }
-func (c *contextAwarePlugin) HandleIssueCommentEvent(_ context.Context, _ *logrus.Entry, _ github.IssueCommentEvent) {
+func (c *contextAwarePlugin) HandleIssueCommentEvent(_ context.Context, _ *logrus.Entry, _ github.IssueCommentEvent) HandlerResult {
+	return HandlerResult{}
 }
-func (c *contextAwarePlugin) HandleReviewEvent(_ context.Context, _ *logrus.Entry, _ github.ReviewEvent) {
+func (c *contextAwarePlugin) HandleReviewEvent(_ context.Context, _ *logrus.Entry, _ github.ReviewEvent) HandlerResult {
+	return HandlerResult{}
 }
 
 func waitForEvents(t *testing.T, countFn func() int, expected int) {
