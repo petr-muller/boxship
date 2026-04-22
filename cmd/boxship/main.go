@@ -8,10 +8,13 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
+	prowconfig "sigs.k8s.io/prow/pkg/config"
 	"sigs.k8s.io/prow/pkg/flagutil"
 	"sigs.k8s.io/prow/pkg/githubeventserver"
 	"sigs.k8s.io/prow/pkg/interrupts"
 	"sigs.k8s.io/prow/pkg/logrusutil"
+	"sigs.k8s.io/prow/pkg/metrics"
+	"sigs.k8s.io/prow/pkg/pjutil"
 
 	"github.com/petr-muller/boxship/pkg/config"
 	"github.com/petr-muller/boxship/pkg/dispatch"
@@ -20,13 +23,14 @@ import (
 )
 
 type options struct {
-	eventServerOptions githubeventserver.Options
-	github             flagutil.GitHubOptions
-	hmacSecretFile     string
-	dryRun             bool
-	logLevel           string
-	configPath         string
-	supplementalDir    string
+	eventServerOptions     githubeventserver.Options
+	instrumentationOptions flagutil.InstrumentationOptions
+	github                 flagutil.GitHubOptions
+	hmacSecretFile         string
+	dryRun                 bool
+	logLevel               string
+	configPath             string
+	supplementalDir        string
 }
 
 func gatherOptions() options {
@@ -34,6 +38,7 @@ func gatherOptions() options {
 	fs := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 
 	o.eventServerOptions.Bind(fs)
+	o.instrumentationOptions.AddFlags(fs)
 	o.github.AddFlags(fs)
 	fs.StringVar(&o.hmacSecretFile, "hmac-secret-file", "/etc/webhook/hmac", "Path to the file containing the GitHub HMAC secret")
 	fs.BoolVar(&o.dryRun, "dry-run", true, "Dry run for testing (uses no mutations)")
@@ -91,6 +96,10 @@ func main() {
 	if err != nil {
 		logger.WithError(err).Fatal("Failed to create GitHub client")
 	}
+
+	metrics.ExposeMetrics("boxship", prowconfig.PushGateway{}, o.instrumentationOptions.MetricsPort)
+	health := pjutil.NewHealthOnPort(o.instrumentationOptions.HealthPort)
+	health.ServeReady()
 
 	eventServer := githubeventserver.New(o.eventServerOptions, hmacTokenGenerator, logger)
 

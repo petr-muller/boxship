@@ -2,13 +2,26 @@ package dispatch
 
 import (
 	"context"
+	"strconv"
 	"sync"
+	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 	"sigs.k8s.io/prow/pkg/github"
 
 	"github.com/petr-muller/boxship/pkg/config"
 )
+
+var pluginHandleDuration = prometheus.NewHistogramVec(prometheus.HistogramOpts{
+	Name:    "boxship_plugin_handle_duration_seconds",
+	Help:    "How long a sub-plugin took to handle an event.",
+	Buckets: []float64{0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10},
+}, []string{"event_type", "plugin", "took_action"})
+
+func init() {
+	prometheus.MustRegister(pluginHandleDuration)
+}
 
 // HandlerResult is returned by sub-plugin handlers to report whether the event
 // was relevant to the plugin.
@@ -83,8 +96,9 @@ func (d *Dispatcher) HandlePullRequestEvent(l *logrus.Entry, event github.PullRe
 		d.wg.Add(1)
 		go func() {
 			defer d.wg.Done()
+			start := time.Now()
 			result := plugin.HandlePullRequestEvent(d.ctx, l.WithField("plugin", plugin.Name()), event)
-			logResult(l, plugin.Name(), result)
+			recordResult(l, "pull_request", plugin.Name(), result, time.Since(start))
 		}()
 	}
 }
@@ -111,8 +125,9 @@ func (d *Dispatcher) HandleIssueCommentEvent(l *logrus.Entry, event github.Issue
 		d.wg.Add(1)
 		go func() {
 			defer d.wg.Done()
+			start := time.Now()
 			result := plugin.HandleIssueCommentEvent(d.ctx, l.WithField("plugin", plugin.Name()), event)
-			logResult(l, plugin.Name(), result)
+			recordResult(l, "issue_comment", plugin.Name(), result, time.Since(start))
 		}()
 	}
 }
@@ -139,16 +154,21 @@ func (d *Dispatcher) HandleReviewEvent(l *logrus.Entry, event github.ReviewEvent
 		d.wg.Add(1)
 		go func() {
 			defer d.wg.Done()
+			start := time.Now()
 			result := plugin.HandleReviewEvent(d.ctx, l.WithField("plugin", plugin.Name()), event)
-			logResult(l, plugin.Name(), result)
+			recordResult(l, "pull_request_review", plugin.Name(), result, time.Since(start))
 		}()
 	}
 }
 
-func logResult(l *logrus.Entry, pluginName string, result HandlerResult) {
+func recordResult(l *logrus.Entry, eventType, pluginName string, result HandlerResult, duration time.Duration) {
+	tookAction := strconv.FormatBool(result.Relevant)
+	pluginHandleDuration.WithLabelValues(eventType, pluginName, tookAction).Observe(duration.Seconds())
+
 	entry := l.WithFields(logrus.Fields{
 		"plugin":   pluginName,
 		"relevant": result.Relevant,
+		"duration": duration.String(),
 	})
 	if result.Reason != "" {
 		entry = entry.WithField("reason", result.Reason)

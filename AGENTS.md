@@ -34,6 +34,15 @@ make image     # build container image (requires build first)
 
 See `pkg/subplugins/example/` for a reference implementation.
 
+### Sub-Plugin Observability Rules
+
+- Use the provided `*logrus.Entry` — never create your own logger. The dispatcher injects structured fields (`event_type`, `org`, `repo`, `pr`, `plugin`).
+- Return meaningful `dispatch.HandlerResult` from every handler: `dispatch.Irrelevant("reason")` for skipped events, `dispatch.Handled("reason")` for acted-on events. This is the primary observability channel.
+- Log domain-specific decisions at Debug (e.g., "config resolved to label=X"). Log failures at Error. Do not log event lifecycle ("received event", "handler complete") — the dispatcher handles that.
+- Do not register Prometheus metrics directly. The dispatcher tracks handler duration per plugin automatically.
+
+See `specs/007-observability.md` for the full observability design.
+
 ## Testing
 
 Three layers of testing are available:
